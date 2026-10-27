@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Удаление поста</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      background: var(--tg-theme-bg-color, #17212b);
+      color: var(--tg-theme-text-color, #ffffff);
+    }
+
+    .card {
+      max-width: 440px;
+      margin: 30px auto;
+    }
+
+    h2 {
+      margin-bottom: 12px;
+    }
+
+    .description {
+      color: var(--tg-theme-hint-color, #aaaaaa);
+      line-height: 1.5;
+    }
+
+    input,
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 14px;
+      border-radius: 12px;
+      font-size: 16px;
+    }
+
+    input {
+      border: 1px solid var(--tg-theme-hint-color, #888888);
+      background: var(--tg-theme-secondary-bg-color, #222222);
+      color: var(--tg-theme-text-color, #ffffff);
+    }
+
+    button {
+      border: none;
+      background: var(--tg-theme-button-color, #2481cc);
+      color: var(--tg-theme-button-text-color, #ffffff);
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #status {
+      margin-top: 18px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .price {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <h2>🗑 Удаление поста</h2>
+
+    <p class="description">
+      Вставь ссылку на пост в канале
+      @PODSLUSHINO1598.
+    </p>
+
+    <input
+      id="postUrl"
+      type="url"
+      placeholder="https://t.me/PODSLUSHINO1598/123"
+      autocomplete="url"
+    >
+
+    <div class="price">Стоимость: 200 ⭐</div>
+
+    <button id="submit">Продолжить</button>
+
+    <p class="description">
+      После отправки ссылки бот выставит счёт.
+      Заявка будет считаться оплаченной только
+      после подтверждения платежа Telegram.
+      Удаление выполняет администратор вручную.
+    </p>
+
+    <p id="status" role="status"></p>
+  </main>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+
+    tg.ready();
+    tg.expand();
+
+    const input = document.getElementById("postUrl");
+    const button = document.getElementById("submit");
+    const status = document.getElementById("status");
+
+    button.addEventListener("click", () => {
+      const value = input.value.trim();
+
+      let parsed;
+
+      try {
+        parsed = new URL(value);
+      } catch {
+        status.textContent = "❌ Введи корректную ссылку.";
+        return;
+      }
+
+      const parts = parsed.pathname
+        .split("/")
+        .filter(Boolean);
+
+      if (
+        parsed.protocol !== "https:" ||
+        parsed.hostname !== "t.me" ||
+        parts.length !== 2 ||
+        parts[0].toLowerCase() !== "podslushino1598" ||
+        !/^\d+$/.test(parts[1]) ||
+        Number(parts[1]) <= 0
+      ) {
+        status.textContent =
+          "❌ Введи ссылку на конкретный пост канала.";
+        return;
+      }
+
+      if (!tg.initData) {
+        status.textContent =
+          "Открой приложение через Telegram-бота.";
+        return;
+      }
+
+      const postUrl =
+        `https://t.me/PODSLUSHINO1598/${Number(parts[1])}`;
+
+      tg.sendData(JSON.stringify({
+        url: postUrl
+      }));
+
+      status.textContent =
+        "✅ Ссылка отправлена боту. Вернись в чат для оплаты.";
+    });
+  </script>
+</body>
+</html>
